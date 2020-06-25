@@ -2,8 +2,8 @@ import org.hypertrace.gradle.publishing.License.AGPL_V3
 
 plugins {
   `java-gradle-plugin`
-  id("org.hypertrace.publish-plugin") version "0.1.3"
-  id("org.hypertrace.ci-utils-plugin") version "0.1.1"
+  id("org.hypertrace.publish-plugin") version "0.1.0"
+  id("org.hypertrace.ci-utils-plugin") version "0.1.0"
 }
 
 group = "org.hypertrace.gradle.publishing"
