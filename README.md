@@ -7,8 +7,9 @@ This plugin configures the target project to publish its java artifacts to the H
 repository. It uses the `maven-publish` and `gradle-bintray-plugin` plugins internally to do this.
 By default, it will publish to https://dl.bintray.com/hypertrace/maven. The following credentials
 must be provided as gradle properties in the default configuration:
-- bintrayUser
-- bintrayApiKey
+- publishUser
+- publishApiKey
+
 Additionally, no default value is provide for the license. This must be set explicitly via dsl.
 
 Each property described below can be configured in the DSL. The default values are shown for each property,
@@ -17,8 +18,8 @@ all of which, with the exception of license, can be omitted if left unchanged.
  hypertracePublish {
       license // REQUIRED to be a value defined in org.hypertrace.gradle.publishing.License
       vcsUrl // Optional. Defaults to the env var CIRCLE_REPOSITORY_URL
-      user // Optional. Defaults to gradle property bintrayUser
-      apiKey // Optional. Defaults to gradle property bintrayApiKey
+      user // Optional. Defaults to gradle property publishUser
+      apiKey // Optional. Defaults to gradle property publishApiKey
       repo // Optional. Defaults to "maven"
       organization  // Optional. Defaults to "hypertrace"
       name // Optional. Publication name, defaults to project.getName()
@@ -30,7 +31,7 @@ Currently supported publications:
 - `java-library`: For projects applying `java-library`, the `java` component (i.e. the jar) will be registered as a publication
 
 ### Tasks
-One task is added to the applied project, and one to the root project.
+One task is added to the applied project, and one to the root project (if not defined).
 
 `bintrayUpload` - uploads all publications to bintray based on the provided config.
 This generally should not be used directly, because it requires an additional step to make
