@@ -13,6 +13,7 @@ import javax.annotation.Nonnull;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
@@ -60,7 +61,11 @@ public class PublishPlugin implements Plugin<Project> {
             publication ->
                 uploadTask.configure(
                     task -> {
-                      task.dependsOn(this.getDependenciesForPublication(publication));
+                      var dependenices = this.getDependenciesForPublication(project, publication);
+                      if (dependenices.stream().allMatch(dependency -> !dependency.getEnabled())) {
+                        return; // Ignore any publication that isn't actually publishing
+                      }
+                      task.dependsOn(dependenices);
                       task.setPublications(
                           this.getPublishingExtension().getPublications().toArray());
                     }));
@@ -115,11 +120,11 @@ public class PublishPlugin implements Plugin<Project> {
     task.setVersionName(String.valueOf(project.getVersion()));
   }
 
-  private Collection<Object> getDependenciesForPublication(Publication publication) {
+  private Collection<Task> getDependenciesForPublication(Project project, Publication publication) {
     if (!(publication instanceof MavenPublication)) {
       return Set.of();
     }
-    return Set.of(this.getPublishLocalTaskNameForPublication(publication));
+    return project.getTasksByName(this.getPublishLocalTaskNameForPublication(publication), false);
   }
 
   private String getPublishLocalTaskNameForPublication(Publication publication) {
