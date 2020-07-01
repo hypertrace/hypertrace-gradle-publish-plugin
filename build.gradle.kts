@@ -27,6 +27,7 @@ gradlePlugin {
 }
 
 dependencies {
+  // Do not upgrade without reviewing. See PublishPlugin.createModuleMetadataPublication
   implementation("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5")
 
   constraints {

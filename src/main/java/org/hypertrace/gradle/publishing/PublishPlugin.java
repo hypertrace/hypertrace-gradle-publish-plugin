@@ -18,6 +18,7 @@ import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.TaskProvider;
@@ -57,6 +58,7 @@ public class PublishPlugin implements Plugin<Project> {
 
     this.getPublishingExtension()
         .getPublications()
+        .withType(MavenPublication.class)
         .all(
             publication ->
                 uploadTask.configure(
@@ -65,6 +67,7 @@ public class PublishPlugin implements Plugin<Project> {
                       if (dependenices.stream().allMatch(dependency -> !dependency.getEnabled())) {
                         return; // Ignore any publication that isn't actually publishing
                       }
+                      this.addModuleMetadataPublication(publication);
                       task.dependsOn(dependenices);
                       task.setPublications(
                           this.getPublishingExtension().getPublications().toArray());
@@ -164,6 +167,24 @@ public class PublishPlugin implements Plugin<Project> {
           .named(PUBLISH_LIFECYCLE_TASK_NAME)
           .configure(task -> task.dependsOn(rootPublish));
       return rootPublish;
+    }
+  }
+
+  /*
+   Bug in bintray plugin prevents the gradle metadata from being published normally. This is a hack
+   to publish it explicitly. TODO: remove once bintray plugin handles this -
+   https://github.com/bintray/gradle-bintray-plugin/pull/306
+   Once the plugin handles this, this extra publication will duplicate the artifact and cause
+   publish failures.
+  */
+  private void addModuleMetadataPublication(MavenPublication publication) {
+    if (publication instanceof MavenPublicationInternal) {
+      // Extract the module metadata artifact, and re-register it as a first class artifact
+      ((MavenPublicationInternal) publication)
+          .asNormalisedPublication().getAllArtifacts().stream()
+              .filter(mavenArtifact -> mavenArtifact.getExtension().equals("module"))
+              .findFirst()
+              .ifPresent(publication::artifact);
     }
   }
 }
