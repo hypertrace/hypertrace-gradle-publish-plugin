@@ -60,18 +60,18 @@ public class PublishPlugin implements Plugin<Project> {
         .getPublications()
         .withType(MavenPublication.class)
         .all(
-            publication ->
-                uploadTask.configure(
-                    task -> {
-                      var dependenices = this.getDependenciesForPublication(project, publication);
-                      if (dependenices.stream().allMatch(dependency -> !dependency.getEnabled())) {
-                        return; // Ignore any publication that isn't actually publishing
-                      }
-                      this.addModuleMetadataPublication(publication);
-                      task.dependsOn(dependenices);
-                      task.setPublications(
-                          this.getPublishingExtension().getPublications().toArray());
-                    }));
+            publication -> {
+              var dependencies = this.getDependenciesForPublication(project, publication);
+              if (dependencies.stream().noneMatch(Task::getEnabled)) {
+                return; // Ignore any publication that isn't actually publishing
+              }
+              this.addModuleMetadataPublication(publication);
+              uploadTask.configure(
+                  task -> {
+                    task.dependsOn(dependencies);
+                    task.setPublications(this.getPublishingExtension().getPublications().toArray());
+                  });
+            });
   }
 
   private TaskProvider<?> setupRootForPublishingIfNeeded() {
@@ -181,7 +181,7 @@ public class PublishPlugin implements Plugin<Project> {
     if (publication instanceof MavenPublicationInternal) {
       // Extract the module metadata artifact, and re-register it as a first class artifact
       ((MavenPublicationInternal) publication)
-          .asNormalisedPublication().getAllArtifacts().stream()
+          .getPublishableArtifacts().stream()
               .filter(mavenArtifact -> mavenArtifact.getExtension().equals("module"))
               .findFirst()
               .ifPresent(publication::artifact);
