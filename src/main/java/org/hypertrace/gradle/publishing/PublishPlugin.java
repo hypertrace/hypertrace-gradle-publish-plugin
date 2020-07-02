@@ -178,13 +178,17 @@ public class PublishPlugin implements Plugin<Project> {
    publish failures.
   */
   private void addModuleMetadataPublication(MavenPublication publication) {
-    if (publication instanceof MavenPublicationInternal) {
-      // Extract the module metadata artifact, and re-register it as a first class artifact
-      ((MavenPublicationInternal) publication)
-          .getPublishableArtifacts().stream()
-              .filter(mavenArtifact -> mavenArtifact.getExtension().equals("module"))
-              .findFirst()
-              .ifPresent(publication::artifact);
-    }
+    // This call will resolve a publication - we don't want to do that until other plugins have
+    // finished setting up, so wait til after evaluate
+    project.afterEvaluate(unused -> {
+      if (publication instanceof MavenPublicationInternal) {
+        // Extract the module metadata artifact, and re-register it as a first class artifact
+        ((MavenPublicationInternal) publication)
+            .getPublishableArtifacts().stream()
+            .filter(mavenArtifact -> mavenArtifact.getExtension().equals("module"))
+            .findFirst()
+            .ifPresent(publication::artifact);
+      }
+    });
   }
 }
