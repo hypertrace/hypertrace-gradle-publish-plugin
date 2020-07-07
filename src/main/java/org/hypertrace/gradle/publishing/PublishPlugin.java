@@ -52,7 +52,8 @@ public class PublishPlugin implements Plugin<Project> {
 
   private void addUploadTask(TaskProvider<?> publishTask) {
     TaskProvider<BintrayUploadTask> uploadTask =
-        this.project.getTasks().register(UPLOAD_TASK_NAME, BintrayUploadTask.class);
+        this.getOrCreateTask(this.project, UPLOAD_TASK_NAME, BintrayUploadTask.class);
+    uploadTask.configure(task -> task.setEnabled(true));
     publishTask.configure(task -> task.dependsOn(uploadTask));
     project.afterEvaluate(unused -> uploadTask.configure(this::configureUploadTask));
 
@@ -158,32 +159,31 @@ public class PublishPlugin implements Plugin<Project> {
   }
 
   private TaskProvider<?> getOrCreateRootPublishTask() {
-    Project root = this.project.getRootProject();
-    try {
-      return root.getTasks().named(PUBLISH_TASK_NAME);
-    } catch (Exception ignored) {
-      TaskProvider<?> rootPublish =
-          root.getTasks().register(PUBLISH_TASK_NAME, BintrayPublishTask.class);
-      root.getTasks()
-          .named(PUBLISH_LIFECYCLE_TASK_NAME)
-          .configure(task -> task.dependsOn(rootPublish));
-      return rootPublish;
-    }
+    TaskProvider<?> taskProvider =
+        this.getOrCreateTask(project.getRootProject(), PUBLISH_TASK_NAME, BintrayPublishTask.class);
+    project
+        .getRootProject()
+        .getTasks()
+        .named(PUBLISH_LIFECYCLE_TASK_NAME)
+        .configure(task -> task.dependsOn(taskProvider));
+    return taskProvider;
   }
 
   private void addRootUploadTaskIfNeeded() {
-    Project root = this.project.getRootProject();
+    this.getOrCreateTask(project.getRootProject(), UPLOAD_TASK_NAME, BintrayUploadTask.class)
+        .configure(
+            task -> {
+              task.setEnabled(false);
+              task.project = project.getRootProject();
+            });
+  }
+
+  private <T extends Task> TaskProvider<T> getOrCreateTask(
+      Project project, String name, Class<T> taskClass) {
     try {
-      root.getTasks().named(UPLOAD_TASK_NAME);
+      return project.getTasks().withType(taskClass).named(name);
     } catch (Exception ignored) {
-      root.getTasks()
-          .register(
-              UPLOAD_TASK_NAME,
-              BintrayUploadTask.class,
-              task -> {
-                task.setEnabled(false);
-                task.project = root;
-              });
+      return project.getTasks().register(name, taskClass);
     }
   }
 
