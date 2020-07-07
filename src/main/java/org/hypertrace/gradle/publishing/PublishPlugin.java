@@ -77,6 +77,7 @@ public class PublishPlugin implements Plugin<Project> {
   private TaskProvider<?> setupRootForPublishingIfNeeded() {
     Project root = this.project.getRootProject();
     root.getPluginManager().apply(PublishingPlugin.class);
+    this.addRootUploadTaskIfNeeded();
     return this.getOrCreateRootPublishTask();
   }
 
@@ -170,6 +171,22 @@ public class PublishPlugin implements Plugin<Project> {
     }
   }
 
+  private void addRootUploadTaskIfNeeded() {
+    Project root = this.project.getRootProject();
+    try {
+      root.getTasks().named(UPLOAD_TASK_NAME);
+    } catch (Exception ignored) {
+      root.getTasks()
+          .register(
+              UPLOAD_TASK_NAME,
+              BintrayUploadTask.class,
+              task -> {
+                task.setEnabled(false);
+                task.project = root;
+              });
+    }
+  }
+
   /*
    Bug in bintray plugin prevents the gradle metadata from being published normally. This is a hack
    to publish it explicitly. TODO: remove once bintray plugin handles this -
@@ -180,15 +197,16 @@ public class PublishPlugin implements Plugin<Project> {
   private void addModuleMetadataPublication(MavenPublication publication) {
     // This call will resolve a publication - we don't want to do that until other plugins have
     // finished setting up, so wait til after evaluate
-    project.afterEvaluate(unused -> {
-      if (publication instanceof MavenPublicationInternal) {
-        // Extract the module metadata artifact, and re-register it as a first class artifact
-        ((MavenPublicationInternal) publication)
-            .getPublishableArtifacts().stream()
-            .filter(mavenArtifact -> mavenArtifact.getExtension().equals("module"))
-            .findFirst()
-            .ifPresent(publication::artifact);
-      }
-    });
+    project.afterEvaluate(
+        unused -> {
+          if (publication instanceof MavenPublicationInternal) {
+            // Extract the module metadata artifact, and re-register it as a first class artifact
+            ((MavenPublicationInternal) publication)
+                .getPublishableArtifacts().stream()
+                    .filter(mavenArtifact -> mavenArtifact.getExtension().equals("module"))
+                    .findFirst()
+                    .ifPresent(publication::artifact);
+          }
+        });
   }
 }
