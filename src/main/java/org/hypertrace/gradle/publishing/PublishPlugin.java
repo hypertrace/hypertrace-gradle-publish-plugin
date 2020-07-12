@@ -4,7 +4,6 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.gradle.api.publish.plugins.PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME;
 import static org.hypertrace.gradle.publishing.HypertracePublishExtension.PUBLISH_API_KEY_PROPERTY;
 import static org.hypertrace.gradle.publishing.HypertracePublishExtension.PUBLISH_USER_PROPERTY;
-import static org.hypertrace.gradle.publishing.License.TRACEABLE;
 import static org.hypertrace.gradle.publishing.License.TRACEABLE_COMMUNITY;
 
 import com.jfrog.bintray.gradle.tasks.BintrayPublishTask;
