@@ -4,6 +4,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 import static org.gradle.api.publish.plugins.PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME;
 import static org.hypertrace.gradle.publishing.HypertracePublishExtension.PUBLISH_API_KEY_PROPERTY;
 import static org.hypertrace.gradle.publishing.HypertracePublishExtension.PUBLISH_USER_PROPERTY;
+import static org.hypertrace.gradle.publishing.License.TRACEABLE_COMMUNITY;
 
 import com.jfrog.bintray.gradle.tasks.BintrayPublishTask;
 import com.jfrog.bintray.gradle.tasks.BintrayUploadTask;
@@ -121,7 +122,10 @@ public class PublishPlugin implements Plugin<Project> {
     task.setPackageName(this.extension.name.get());
     task.setPackageVcsUrl(this.extension.vcsUrl.get());
     task.setUserOrg(this.extension.organization.get());
-    task.setPackageLicenses(this.extension.license.get().bintrayString);
+    if (this.extension.license.get() != TRACEABLE_COMMUNITY) {
+      // The bintray plugin doesn't support custom licenses. This is the default on all repos.
+      task.setPackageLicenses(this.extension.license.get().bintrayString);
+    }
     task.setVersionName(String.valueOf(project.getVersion()));
   }
 
