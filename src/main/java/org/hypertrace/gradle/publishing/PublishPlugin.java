@@ -9,7 +9,7 @@ import static org.hypertrace.gradle.publishing.License.TRACEABLE_COMMUNITY;
 import com.jfrog.bintray.gradle.tasks.BintrayPublishTask;
 import com.jfrog.bintray.gradle.tasks.BintrayUploadTask;
 import java.util.Collection;
-import java.util.Set;
+import java.util.Collections;
 import javax.annotation.Nonnull;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
@@ -63,7 +63,8 @@ public class PublishPlugin implements Plugin<Project> {
         .withType(MavenPublication.class)
         .all(
             publication -> {
-              var dependencies = this.getDependenciesForPublication(project, publication);
+              Collection<Task> dependencies =
+                  this.getDependenciesForPublication(project, publication);
               if (dependencies.stream().noneMatch(Task::getEnabled)) {
                 return; // Ignore any publication that isn't actually publishing
               }
@@ -131,7 +132,7 @@ public class PublishPlugin implements Plugin<Project> {
 
   private Collection<Task> getDependenciesForPublication(Project project, Publication publication) {
     if (!(publication instanceof MavenPublication)) {
-      return Set.of();
+      return Collections.emptySet();
     }
     return project.getTasksByName(this.getPublishLocalTaskNameForPublication(publication), false);
   }
