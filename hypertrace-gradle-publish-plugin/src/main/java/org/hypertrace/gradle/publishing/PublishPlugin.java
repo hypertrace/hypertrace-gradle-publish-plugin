@@ -37,7 +37,7 @@ public class PublishPlugin implements Plugin<Project> {
   public void apply(@Nonnull Project target) {
     project = target;
     this.extension =
-      project.getExtensions().create(EXTENSION_NAME, HypertracePublishExtension.class, project);
+        project.getExtensions().create(EXTENSION_NAME, HypertracePublishExtension.class, project);
     this.applyMavenPublish();
     this.addKnownPublications();
     this.addUploadTask(this.setupRootForPublishingIfNeeded());
@@ -53,28 +53,28 @@ public class PublishPlugin implements Plugin<Project> {
 
   private void addUploadTask(TaskProvider<?> publishTask) {
     TaskProvider<BintrayUploadTask> uploadTask =
-      this.getOrCreateTask(this.project, UPLOAD_TASK_NAME, BintrayUploadTask.class);
+        this.getOrCreateTask(this.project, UPLOAD_TASK_NAME, BintrayUploadTask.class);
     uploadTask.configure(task -> task.setEnabled(true));
     publishTask.configure(task -> task.dependsOn(uploadTask));
     project.afterEvaluate(unused -> uploadTask.configure(this::configureUploadTask));
 
     this.getPublishingExtension()
-      .getPublications()
-      .withType(MavenPublication.class)
-      .all(
-        publication -> {
-          Collection<Task> dependencies =
-            this.getDependenciesForPublication(project, publication);
-          if (dependencies.stream().noneMatch(Task::getEnabled)) {
-            return; // Ignore any publication that isn't actually publishing
-          }
-          this.addModuleMetadataPublication(publication);
-          uploadTask.configure(
-            task -> {
-              task.dependsOn(dependencies);
-              task.setPublications(this.getPublishingExtension().getPublications().toArray());
+        .getPublications()
+        .withType(MavenPublication.class)
+        .all(
+            publication -> {
+              Collection<Task> dependencies =
+                  this.getDependenciesForPublication(project, publication);
+              if (dependencies.stream().noneMatch(Task::getEnabled)) {
+                return; // Ignore any publication that isn't actually publishing
+              }
+              this.addModuleMetadataPublication(publication);
+              uploadTask.configure(
+                  task -> {
+                    task.dependsOn(dependencies);
+                    task.setPublications(this.getPublishingExtension().getPublications().toArray());
+                  });
             });
-        });
   }
 
   private TaskProvider<?> setupRootForPublishingIfNeeded() {
@@ -86,19 +86,19 @@ public class PublishPlugin implements Plugin<Project> {
 
   private void addJavaLibraryPublicationWhenApplied(PublicationContainer publications) {
     project
-      .getPluginManager()
-      .withPlugin(
-        "java-library",
-        appliedPlugin -> {
-          if (this.isJavaGradlePluginPluginApplied()) {
-            return; // This already creates publications, we don't want to duplicate
-          }
+        .getPluginManager()
+        .withPlugin(
+            "java-library",
+            appliedPlugin -> {
+              if (this.isJavaGradlePluginPluginApplied()) {
+                return; // This already creates publications, we don't want to duplicate
+              }
 
-          publications.create(
-            "javaLibrary",
-            MavenPublication.class,
-            publication -> publication.from(project.getComponents().getByName("java")));
-        });
+              publications.create(
+                  "javaLibrary",
+                  MavenPublication.class,
+                  publication -> publication.from(project.getComponents().getByName("java")));
+            });
   }
 
   private PublishingExtension getPublishingExtension() {
@@ -128,7 +128,6 @@ public class PublishPlugin implements Plugin<Project> {
       task.setPackageLicenses(this.extension.license.get().bintrayString);
     }
     task.setVersionName(String.valueOf(project.getVersion()));
-    System.out.println("apiUrl: " + this.extension.apiUrl.get());
   }
 
   private Collection<Task> getDependenciesForPublication(Project project, Publication publication) {
@@ -145,47 +144,47 @@ public class PublishPlugin implements Plugin<Project> {
   private void validateExtensionAtConfigurationTime() {
     if (!this.extension.license.isPresent()) {
       throw new GradleException(
-        "A license type must be specified in the build DSL to use the Hypertrace publish plugin");
+          "A license type must be specified in the build DSL to use the Hypertrace publish plugin");
     }
   }
 
   private void validateExtensionAtExecutionTime() {
     if (!this.extension.user.isPresent()) {
       throw new GradleException(
-        String.format(
-          "A bintray user must be provided to run %s. Please provide one through the DSL as %s.user or the gradle property %s",
-          UPLOAD_TASK_NAME, EXTENSION_NAME, PUBLISH_USER_PROPERTY));
+          String.format(
+              "A bintray user must be provided to run %s. Please provide one through the DSL as %s.user or the gradle property %s",
+              UPLOAD_TASK_NAME, EXTENSION_NAME, PUBLISH_USER_PROPERTY));
     }
     if (!this.extension.apiKey.isPresent()) {
       throw new GradleException(
-        String.format(
-          "A bintray API Key must be provided to run %s. Please provide one through the DSL as %s.apiKey or the gradle property %s",
-          UPLOAD_TASK_NAME, EXTENSION_NAME, PUBLISH_API_KEY_PROPERTY));
+          String.format(
+              "A bintray API Key must be provided to run %s. Please provide one through the DSL as %s.apiKey or the gradle property %s",
+              UPLOAD_TASK_NAME, EXTENSION_NAME, PUBLISH_API_KEY_PROPERTY));
     }
   }
 
   private TaskProvider<?> getOrCreateRootPublishTask() {
     TaskProvider<?> taskProvider =
-      this.getOrCreateTask(project.getRootProject(), PUBLISH_TASK_NAME, BintrayPublishTask.class);
+        this.getOrCreateTask(project.getRootProject(), PUBLISH_TASK_NAME, BintrayPublishTask.class);
     project
-      .getRootProject()
-      .getTasks()
-      .named(PUBLISH_LIFECYCLE_TASK_NAME)
-      .configure(task -> task.dependsOn(taskProvider));
+        .getRootProject()
+        .getTasks()
+        .named(PUBLISH_LIFECYCLE_TASK_NAME)
+        .configure(task -> task.dependsOn(taskProvider));
     return taskProvider;
   }
 
   private void addRootUploadTaskIfNeeded() {
     this.getOrCreateTask(project.getRootProject(), UPLOAD_TASK_NAME, BintrayUploadTask.class)
-      .configure(
-        task -> {
-          task.setEnabled(false);
-          task.project = project.getRootProject();
-        });
+        .configure(
+            task -> {
+              task.setEnabled(false);
+              task.project = project.getRootProject();
+            });
   }
 
   private <T extends Task> TaskProvider<T> getOrCreateTask(
-    Project project, String name, Class<T> taskClass) {
+      Project project, String name, Class<T> taskClass) {
     try {
       return project.getTasks().withType(taskClass).named(name);
     } catch (Exception ignored) {
@@ -204,15 +203,15 @@ public class PublishPlugin implements Plugin<Project> {
     // This call will resolve a publication - we don't want to do that until other plugins have
     // finished setting up, so wait til after evaluate
     project.afterEvaluate(
-      unused -> {
-        if (publication instanceof MavenPublicationInternal) {
-          // Extract the module metadata artifact, and re-register it as a first class artifact
-          ((MavenPublicationInternal) publication)
-            .getPublishableArtifacts().stream()
-            .filter(mavenArtifact -> mavenArtifact.getExtension().equals("module"))
-            .findFirst()
-            .ifPresent(publication::artifact);
-        }
-      });
+        unused -> {
+          if (publication instanceof MavenPublicationInternal) {
+            // Extract the module metadata artifact, and re-register it as a first class artifact
+            ((MavenPublicationInternal) publication)
+                .getPublishableArtifacts().stream()
+                    .filter(mavenArtifact -> mavenArtifact.getExtension().equals("module"))
+                    .findFirst()
+                    .ifPresent(publication::artifact);
+          }
+        });
   }
 }
