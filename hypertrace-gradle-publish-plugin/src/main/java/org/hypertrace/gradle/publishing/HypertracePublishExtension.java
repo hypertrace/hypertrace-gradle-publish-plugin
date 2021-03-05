@@ -29,9 +29,9 @@ public class HypertracePublishExtension {
   public HypertracePublishExtension(Project project, ObjectFactory objectFactory) {
     this.license = objectFactory.property(License.class);
     this.vcsUrl =
-        objectFactory
-            .property(String.class)
-            .convention(this.getEnvironmentVariable(CIRCLECI_REPO_URL_ENV_VAR).orElse(UNSET));
+      objectFactory
+        .property(String.class)
+        .convention(this.getEnvironmentVariable(CIRCLECI_REPO_URL_ENV_VAR).orElse(UNSET));
     this.user = objectFactory.property(String.class);
     this.getProperty(project, PUBLISH_USER_PROPERTY).ifPresent(this.user::convention);
     this.apiKey = objectFactory.property(String.class);
@@ -40,6 +40,7 @@ public class HypertracePublishExtension {
     this.organization = objectFactory.property(String.class).convention(BINTRAY_ORG_NAME);
     this.name = objectFactory.property(String.class).convention(project.getName());
     this.apiUrl = objectFactory.property(String.class).convention(DEFAULT_BINTRAY_API_URL);
+    System.out.println("apiUrl2: " + this.apiUrl.get());
   }
 
   private Optional<String> getProperty(Project project, String propertyName) {

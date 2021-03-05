@@ -13,3 +13,6 @@ plugins {
 }
 
 rootProject.name = "hypertrace-gradle-publish-plugin"
+
+include(":hypertrace-gradle-publish-plugin")
+include(":hypertrace-gradle-publish-maven-central-plugin")
