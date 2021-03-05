@@ -37,8 +37,7 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
     this.applyWithJavadocJar();
     this.applyWithSourcesJar();
     this.addPublishRepository();
-    this.addKnownPublications();
-    this.addSigning();
+    this.addPublications();
   }
 
   private void applySigning() {
@@ -46,15 +45,6 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
       .apply(SigningPlugin.class);
   }
 
-  private void addSigning() {
-    if (project.hasProperty(PROPERTY_SIGNING_KEY) && project.hasProperty(PROPERTY_SIGNING_PASSWORD)) {
-      String signingKey = (String) project.property(PROPERTY_SIGNING_KEY);
-      String signingPassword = (String) project.property(PROPERTY_SIGNING_PASSWORD);
-      getSigningExtension().useInMemoryPgpKeys(signingKey, signingPassword);
-    }
-    getSigningExtension()
-      .sign(getPublishingExtension().getPublications().getByName("javaLibrary"));
-  }
 
   private void applyMavenPublish() {
     project.getPluginManager()
@@ -97,20 +87,18 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
     );
   }
 
-  private void addKnownPublications() {
-    getPublishingExtension().publications(this::addJavaLibraryPublicationWhenApplied);
-    getPublishingExtension().publications(this::addDistributionPublicationWhenApplied);
+  private void addPublications() {
+    project.afterEvaluate(unused -> {
+      getPublishingExtension().publications(this::addJavaLibraryPublicationWhenApplied);
+
+      // sign after javaLibrary is added
+      addSigning();
+    });
   }
 
   private void addJavaLibraryPublicationWhenApplied(PublicationContainer publications) {
-
-
     project.getPluginManager()
       .withPlugin("java-library", appliedPlugin -> {
-        if (this.isJavaGradlePluginPluginApplied()) {
-          return; // This already creates a publication, we don't want to duplicate
-        }
-
         publications.create("javaLibrary", MavenPublication.class, publication -> {
           // from
           publication.from(project.getComponents().getByName("java"));
@@ -128,46 +116,47 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
           // pom
           publication.pom(mavenPom -> {
             // url
-            System.out.println("url: " + this.extension.url.get());
             mavenPom.getUrl().set(this.extension.url.get());
 
-//            // scm
-//            mavenPom.scm(mavenPomScm -> {
-//              mavenPomScm.getConnection().set(this.extension.scmConnection.getOrNull());
-//              mavenPomScm.getDeveloperConnection().set(this.extension.scmDeveloperConnection.getOrNull());
-//              mavenPomScm.getUrl().set(this.extension.scmUrl.getOrNull());
-//            });
-//
-//            // developers
-//            mavenPom.developers(mavenPomDeveloperSpec -> {
-//              this.extension.developers.get().stream().forEach(developer -> {
-//                  mavenPomDeveloperSpec.developer(mavenPomDeveloper -> {
-//                    mavenPomDeveloper.getEmail().set(developer);
-//                  });
-//                }
-//              );
-//            });
-//
-//            // licenses
-//            mavenPom.licenses(mavenPomLicenseSpec -> {
-//              this.extension.licenses.get().stream().forEach(license -> {
-//                mavenPomLicenseSpec.license(mavenPomLicense -> {
-//                  mavenPomLicense.getName().set(license);
-//                });
-//              });
-//            });
+            // scm
+            mavenPom.scm(mavenPomScm -> {
+              mavenPomScm.getConnection().set(this.extension.scmConnection.getOrNull());
+              mavenPomScm.getDeveloperConnection().set(this.extension.scmDeveloperConnection.getOrNull());
+              mavenPomScm.getUrl().set(this.extension.scmUrl.getOrNull());
+            });
+
+            // developers
+            mavenPom.developers(mavenPomDeveloperSpec -> {
+              this.extension.developers.get().stream().forEach(developer -> {
+                  mavenPomDeveloperSpec.developer(mavenPomDeveloper -> {
+                    mavenPomDeveloper.getEmail().set(developer);
+                  });
+                }
+              );
+            });
+
+            // licenses
+            mavenPom.licenses(mavenPomLicenseSpec -> {
+              this.extension.licenses.get().stream().forEach(license -> {
+                mavenPomLicenseSpec.license(mavenPomLicense -> {
+                  mavenPomLicense.getName().set(license);
+                });
+              });
+            });
 
           });
         });
       });
   }
 
-  private void addDistributionPublicationWhenApplied(PublicationContainer publications) {
-    project.getPluginManager()
-      .withPlugin("distribution", appliedPlugin ->
-        publications.create("distributionZip", MavenPublication.class, publication ->
-          publication.artifact(project.getTasks()
-            .getByName("distZip"))));
+  private void addSigning() {
+    if (project.hasProperty(PROPERTY_SIGNING_KEY) && project.hasProperty(PROPERTY_SIGNING_PASSWORD)) {
+      String signingKey = (String) project.property(PROPERTY_SIGNING_KEY);
+      String signingPassword = (String) project.property(PROPERTY_SIGNING_PASSWORD);
+      getSigningExtension().useInMemoryPgpKeys(signingKey, signingPassword);
+    }
+    getSigningExtension()
+      .sign(getPublishingExtension().getPublications().getByName("javaLibrary"));
   }
 
   private PublishingExtension getPublishingExtension() {
