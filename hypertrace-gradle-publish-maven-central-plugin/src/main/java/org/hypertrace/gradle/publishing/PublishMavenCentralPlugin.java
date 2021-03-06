@@ -17,10 +17,10 @@ import org.gradle.plugins.signing.SigningPlugin;
 import javax.annotation.Nonnull;
 
 public class PublishMavenCentralPlugin implements Plugin<Project> {
-  private static final String EXTENSION_NAME = "hypertracePublishing";
+  private static final String EXTENSION_NAME = "hypertracePublishMavenCentral";
 
   private static final String PROPERTY_SIGNING_KEY = "signingKey";
-  private static final String PROPERTY_SIGNING_PASSWORD = "signingKey";
+  private static final String PROPERTY_SIGNING_PASSWORD = "signingPassword";
   private static final String PROPERTY_OSSRH_USERNAME = "ossrhUsername";
   private static final String PROPERTY_OSSRH_PASSWORD = "ossrhPassword";
 
@@ -44,7 +44,6 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
     project.getPluginManager()
       .apply(SigningPlugin.class);
   }
-
 
   private void applyMavenPublish() {
     project.getPluginManager()
@@ -91,7 +90,7 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
     project.afterEvaluate(unused -> {
       getPublishingExtension().publications(this::addJavaLibraryPublicationWhenApplied);
 
-      // sign after javaLibrary is added
+      // sign after publication is added
       addSigning();
     });
   }
@@ -126,20 +125,26 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
             });
 
             // developers
-            mavenPom.developers(mavenPomDeveloperSpec -> {
-              this.extension.developers.get().stream().forEach(developer -> {
-                  mavenPomDeveloperSpec.developer(mavenPomDeveloper -> {
-                    mavenPomDeveloper.getEmail().set(developer);
-                  });
-                }
-              );
+            this.extension.developers.all(developer -> {
+              mavenPom.developers(mavenPomDeveloperSpec -> {
+                mavenPomDeveloperSpec.developer(mavenPomDeveloper -> {
+                  mavenPomDeveloper.getId().set(developer.getId());
+                  mavenPomDeveloper.getName().set(developer.getName());
+                  mavenPomDeveloper.getEmail().set(developer.getEmail());
+                  mavenPomDeveloper.getOrganization().set(developer.getOrganization());
+                  mavenPomDeveloper.getOrganizationUrl().set(developer.getOrganizationUrl());
+                });
+              });
             });
 
             // licenses
-            mavenPom.licenses(mavenPomLicenseSpec -> {
-              this.extension.licenses.get().stream().forEach(license -> {
+            this.extension.licenses.all(license -> {
+              mavenPom.licenses(mavenPomLicenseSpec -> {
                 mavenPomLicenseSpec.license(mavenPomLicense -> {
-                  mavenPomLicense.getName().set(license);
+                  mavenPomLicense.getName().set(license.getName());
+                  mavenPomLicense.getUrl().set(license.getUrl());
+                  mavenPomLicense.getDistribution().set(license.getDistribution());
+                  mavenPomLicense.getComments().set(license.getComments());
                 });
               });
             });
@@ -180,13 +185,6 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
         "in your ~/.gradle/gradle.properties file, or in a an environment variable of the form " +
         "ORG_GRADLE_PROJECT_" + propertyName);
     }
-
     return (String) project.property(propertyName);
   }
-
-  private boolean isJavaGradlePluginPluginApplied() {
-    return project.getPluginManager()
-      .hasPlugin("java-gradle-plugin");
-  }
-
 }
