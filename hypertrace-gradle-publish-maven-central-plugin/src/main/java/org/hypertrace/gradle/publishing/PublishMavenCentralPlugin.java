@@ -19,6 +19,7 @@ import javax.annotation.Nonnull;
 public class PublishMavenCentralPlugin implements Plugin<Project> {
   private static final String EXTENSION_NAME = "hypertracePublishMavenCentral";
 
+  private static final String PROPERTY_SIGNING_KEY_ID = "signingKeyId";
   private static final String PROPERTY_SIGNING_KEY = "signingKey";
   private static final String PROPERTY_SIGNING_PASSWORD = "signingPassword";
   private static final String PROPERTY_OSSRH_USERNAME = "ossrhUsername";
@@ -158,7 +159,12 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
     if (project.hasProperty(PROPERTY_SIGNING_KEY) && project.hasProperty(PROPERTY_SIGNING_PASSWORD)) {
       String signingKey = (String) project.property(PROPERTY_SIGNING_KEY);
       String signingPassword = (String) project.property(PROPERTY_SIGNING_PASSWORD);
-      getSigningExtension().useInMemoryPgpKeys(signingKey, signingPassword);
+      if (project.hasProperty(PROPERTY_SIGNING_KEY_ID)) {
+        String signingKeyId = (String) project.property(PROPERTY_SIGNING_KEY_ID);
+        getSigningExtension().useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword);
+      } else {
+        getSigningExtension().useInMemoryPgpKeys(signingKey, signingPassword);
+      }
     }
     getSigningExtension()
       .sign(getPublishingExtension().getPublications().getByName("javaLibrary"));
