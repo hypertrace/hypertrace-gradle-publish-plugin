@@ -119,11 +119,17 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
             mavenPom.getUrl().set(this.extension.url.get());
 
             // scm
-            mavenPom.scm(mavenPomScm -> {
-              mavenPomScm.getConnection().set(this.extension.scmConnection.getOrNull());
-              mavenPomScm.getDeveloperConnection().set(this.extension.scmDeveloperConnection.getOrNull());
-              mavenPomScm.getUrl().set(this.extension.scmUrl.getOrNull());
-            });
+            if (this.extension.repoName.isPresent()) {
+              String repoName = this.extension.repoName.get();
+              String scmConnection = String.format("scm:git:git://github.com/hypertrace/%s.git", repoName);
+              String scmDeveloperConnection = String.format("scm:git:ssh://github.com:hypertrace/%s.git", repoName);
+              String scmUrl = String.format("https://github.com/hypertrace/%s/tree/main", repoName);
+              mavenPom.scm(mavenPomScm -> {
+                mavenPomScm.getConnection().set(scmConnection);
+                mavenPomScm.getDeveloperConnection().set(scmDeveloperConnection);
+                mavenPomScm.getUrl().set(scmUrl);
+              });
+            }
 
             // developers
             this.extension.developers.all(developer -> {

@@ -1,4 +1,3 @@
-
 plugins {
   `java-gradle-plugin`
   id("org.hypertrace.publish-plugin")

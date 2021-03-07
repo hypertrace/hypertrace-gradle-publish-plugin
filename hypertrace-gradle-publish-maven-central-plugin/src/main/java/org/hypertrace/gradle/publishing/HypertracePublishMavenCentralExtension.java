@@ -11,18 +11,14 @@ import javax.inject.Inject;
 public abstract class HypertracePublishMavenCentralExtension implements ExtensionAware {
   private static final String DEFAULT_URL = "https://www.hypertrace.org";
   public final Property<String> url;
-  public final Property<String> scmConnection;
-  public final Property<String> scmDeveloperConnection;
-  public final Property<String> scmUrl;
-    public final NamedDomainObjectContainer<PomLicense> licenses;
+  public final Property<String> repoName;
+  public final NamedDomainObjectContainer<PomLicense> licenses;
   public final NamedDomainObjectContainer<PomDeveloper> developers;
 
   @Inject
   public HypertracePublishMavenCentralExtension(ObjectFactory objectFactory) {
     this.url = objectFactory.property(String.class).convention(DEFAULT_URL);
-    this.scmConnection = objectFactory.property(String.class);
-    this.scmDeveloperConnection = objectFactory.property(String.class);
-    this.scmUrl = objectFactory.property(String.class);
+    this.repoName = objectFactory.property(String.class);
     this.licenses = objectFactory.domainObjectContainer(PomLicense.class);
     this.developers = objectFactory.domainObjectContainer(PomDeveloper.class);
   }
