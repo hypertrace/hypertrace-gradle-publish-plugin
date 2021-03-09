@@ -89,8 +89,8 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
 
   private void addPublications() {
     project.afterEvaluate(unused -> {
+      validateExtensionAtConfigurationTime();
       getPublishingExtension().publications(this::addJavaLibraryPublicationWhenApplied);
-
       // sign after publication is added
       addSigning();
     });
@@ -116,43 +116,35 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
           // pom
           publication.pom(mavenPom -> {
             // url
-            mavenPom.getUrl().set(this.extension.url.get());
+            mavenPom.getUrl().set(this.extension.url);
 
             // scm
-            if (this.extension.repoName.isPresent()) {
-              String repoName = this.extension.repoName.get();
-              String scmConnection = String.format("scm:git:git://github.com/hypertrace/%s.git", repoName);
-              String scmDeveloperConnection = String.format("scm:git:ssh://github.com:hypertrace/%s.git", repoName);
-              String scmUrl = String.format("https://github.com/hypertrace/%s/tree/main", repoName);
-              mavenPom.scm(mavenPomScm -> {
-                mavenPomScm.getConnection().set(scmConnection);
-                mavenPomScm.getDeveloperConnection().set(scmDeveloperConnection);
-                mavenPomScm.getUrl().set(scmUrl);
-              });
-            }
+            String repoName = this.extension.repoName.get();
+            String scmConnection = String.format("scm:git:git://github.com/hypertrace/%s.git", repoName);
+            String scmDeveloperConnection = String.format("scm:git:ssh://github.com:hypertrace/%s.git", repoName);
+            String scmUrl = String.format("https://github.com/hypertrace/%s/tree/main", repoName);
+            mavenPom.scm(mavenPomScm -> {
+              mavenPomScm.getConnection().set(scmConnection);
+              mavenPomScm.getDeveloperConnection().set(scmDeveloperConnection);
+              mavenPomScm.getUrl().set(scmUrl);
+            });
+
 
             // developers
-            this.extension.developers.all(developer -> {
-              mavenPom.developers(mavenPomDeveloperSpec -> {
-                mavenPomDeveloperSpec.developer(mavenPomDeveloper -> {
-                  mavenPomDeveloper.getId().set(developer.getId());
-                  mavenPomDeveloper.getName().set(developer.getName());
-                  mavenPomDeveloper.getEmail().set(developer.getEmail());
-                  mavenPomDeveloper.getOrganization().set(developer.getOrganization());
-                  mavenPomDeveloper.getOrganizationUrl().set(developer.getOrganizationUrl());
-                });
+            mavenPom.developers(mavenPomDeveloperSpec -> {
+              mavenPomDeveloperSpec.developer(mavenPomDeveloper -> {
+                mavenPomDeveloper.getId().set(this.extension.developerId);
+                mavenPomDeveloper.getName().set(this.extension.developerName);
+                mavenPomDeveloper.getEmail().set(this.extension.developerEmail);
+                mavenPomDeveloper.getOrganization().set(this.extension.developerOrganization);
+                mavenPomDeveloper.getOrganizationUrl().set(this.extension.developerOrganizationUrl);
               });
             });
 
             // licenses
-            this.extension.licenses.all(license -> {
-              mavenPom.licenses(mavenPomLicenseSpec -> {
-                mavenPomLicenseSpec.license(mavenPomLicense -> {
-                  mavenPomLicense.getName().set(license.getName());
-                  mavenPomLicense.getUrl().set(license.getUrl());
-                  mavenPomLicense.getDistribution().set(license.getDistribution());
-                  mavenPomLicense.getComments().set(license.getComments());
-                });
+            mavenPom.licenses(mavenPomLicenseSpec -> {
+              mavenPomLicenseSpec.license(mavenPomLicense -> {
+                mavenPomLicense.getName().set(this.extension.license.get().bintrayString);
               });
             });
 
@@ -199,4 +191,16 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
     }
     return (String) project.property(propertyName);
   }
+
+  private void validateExtensionAtConfigurationTime() {
+    if (!this.extension.license.isPresent()) {
+      throw new GradleException(
+        "A license type must be specified in the build DSL to use the Hypertrace maven central publish plugin");
+    }
+    if (!this.extension.repoName.isPresent()) {
+      throw new GradleException(
+        "Repository Name must be specified in the build DSL to use the Hypertrace maven central publish plugin");
+    }
+  }
+
 }

@@ -3,6 +3,15 @@ plugins {
   id("org.hypertrace.publish-plugin")
 }
 
+java {
+  targetCompatibility = JavaVersion.VERSION_1_8
+  sourceCompatibility = JavaVersion.VERSION_1_8
+}
+
+repositories {
+  jcenter()
+}
+
 gradlePlugin {
   plugins {
     create("gradlePlugin") {
@@ -12,7 +21,6 @@ gradlePlugin {
   }
 }
 
-java {
-  targetCompatibility = JavaVersion.VERSION_1_8
-  sourceCompatibility = JavaVersion.VERSION_1_8
+dependencies {
+  implementation(project(":hypertrace-gradle-publish-plugin"))
 }

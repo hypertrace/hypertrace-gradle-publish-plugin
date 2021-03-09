@@ -18,14 +18,11 @@ For signing artifacts, following properties must be provided as gradle propertie
 Each property described below can be configured in the DSL. The default values are shown for each property,
 all of which, with the exception of license, can be omitted if left unchanged.
 ```kotlin
- hypertracePublishMavenCentral {
-    url // The URL for the publication represented by the POM.
-    scmConnection // The connection URL of the SCM.
-    scmDeveloperConnection // The developer connection URL of the SCM
-    scmUrl // The browsable repository URL of the SCM
-    licenses // Configures the licenses for the publication represented by the POM
-    developers // Configures the developers for the publication represented by the POM
-  }
+hypertracePublishMavenCentral {
+  license // REQUIRED to be a value defined in org.hypertrace.gradle.publishing.License
+  repoName // REQUIRED. Name of the repository.
+  url // Optional. The URL for the publication represented by the POM.
+}
 ```
 
 Currently supported publications:
@@ -40,22 +37,12 @@ plugins {
 }
 
 subprojects {
-    pluginManager.withPlugin("org.hypertrace.publish-maven-central-plugin") {
-        configure<org.hypertrace.gradle.publishing.HypertracePublishMavenCentralExtension> {
-            url.set("https://www.hypertrace.org")
-            scmConnection.set("scm:git:git://github.com/hypertrace/hypertrace.git")
-            scmDeveloperConnection.set("scm:git:ssh://github.com:hypertrace/hypertrace.git")
-            scmUrl.set("https://github.com/hypertrace/hypertrace/tree/main")
-            developer("Developer Name") {
-                id.set("Developer Id")
-                email.set("Developer Email")
-            }
-            license("Apache 2.0") {
-                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                distribution.set("repo")
-            }
-        }
+  pluginManager.withPlugin("org.hypertrace.publish-maven-central-plugin") {
+    configure<org.hypertrace.gradle.publishing.HypertracePublishMavenCentralExtension> {
+      repoName.set("repository-name");
+      license.set(org.hypertrace.gradle.publishing.License.APACHE_2_0);
     }
+  }
 }
 ```
 #### Publishing child projects

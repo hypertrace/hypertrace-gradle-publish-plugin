@@ -1,7 +1,6 @@
 package org.hypertrace.gradle.publishing;
 
-import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.hypertrace.gradle.publishing.License;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
@@ -10,40 +9,30 @@ import javax.inject.Inject;
 
 public abstract class HypertracePublishMavenCentralExtension implements ExtensionAware {
   private static final String DEFAULT_URL = "https://www.hypertrace.org";
+  private static final String DEFAULT_DEVELOPER_ID = "hypertrace";
+  private static final String DEFAULT_DEVELOPER_NAME = "Hypertrace Community";
+  private static final String DEFAULT_DEVELOPER_EMAIL = "community@hypertrace.org";
+  private static final String DEFAULT_DEVELOPER_ORG = "Hypertrace";
+  private static final String DEFAULT_DEVELOPER_ORG_URL = "https://www.hypertrace.org";
+
   public final Property<String> url;
   public final Property<String> repoName;
-  public final NamedDomainObjectContainer<PomLicense> licenses;
-  public final NamedDomainObjectContainer<PomDeveloper> developers;
+  public final Property<String> developerId;
+  public final Property<String> developerName;
+  public final Property<String> developerEmail;
+  public final Property<String> developerOrganization;
+  public final Property<String> developerOrganizationUrl;
+  public final Property<License> license;
 
   @Inject
   public HypertracePublishMavenCentralExtension(ObjectFactory objectFactory) {
     this.url = objectFactory.property(String.class).convention(DEFAULT_URL);
     this.repoName = objectFactory.property(String.class);
-    this.licenses = objectFactory.domainObjectContainer(PomLicense.class);
-    this.developers = objectFactory.domainObjectContainer(PomDeveloper.class);
-  }
-
-  public PomLicense license(String licenseName) {
-    return license(licenseName, null);
-  }
-
-  public PomLicense license(String licenseName, Action<PomLicense> licenseAction) {
-    PomLicense license = this.licenses.maybeCreate(licenseName);
-    if (licenseAction != null) {
-      licenseAction.execute(license);
-    }
-    return license;
-  }
-
-  public PomDeveloper developer(String developerName) {
-    return developer(developerName, null);
-  }
-
-  public PomDeveloper developer(String developerName, Action<PomDeveloper> developerAction) {
-    PomDeveloper developer = this.developers.maybeCreate(developerName);
-    if (developerAction != null) {
-      developerAction.execute(developer);
-    }
-    return developer;
+    this.developerId = objectFactory.property(String.class).convention(DEFAULT_DEVELOPER_ID);
+    this.developerName = objectFactory.property(String.class).convention(DEFAULT_DEVELOPER_NAME);
+    this.developerEmail = objectFactory.property(String.class).convention(DEFAULT_DEVELOPER_EMAIL);
+    this.developerOrganization = objectFactory.property(String.class).convention(DEFAULT_DEVELOPER_ORG);
+    this.developerOrganizationUrl = objectFactory.property(String.class).convention(DEFAULT_DEVELOPER_ORG_URL);
+    this.license = objectFactory.property(License.class);
   }
 }
