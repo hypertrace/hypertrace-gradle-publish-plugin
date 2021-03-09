@@ -103,16 +103,6 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
           // from
           publication.from(project.getComponents().getByName("java"));
 
-          // versionMapping
-          publication.versionMapping(versionMappingStrategy -> {
-            versionMappingStrategy.usage("java-api", variantVersionMappingStrategy -> {
-              variantVersionMappingStrategy.fromResolutionOf("runtimeClasspath");
-            });
-            versionMappingStrategy.usage("java-runtime", variantVersionMappingStrategy -> {
-              variantVersionMappingStrategy.fromResolutionResult();
-            });
-          });
-
           // pom
           publication.pom(mavenPom -> {
             // url
