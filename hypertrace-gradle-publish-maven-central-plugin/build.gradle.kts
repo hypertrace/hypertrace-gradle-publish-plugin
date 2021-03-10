@@ -22,5 +22,5 @@ gradlePlugin {
 }
 
 dependencies {
-  implementation(project(":hypertrace-gradle-publish-plugin"))
+  api(project(":hypertrace-gradle-publish-plugin"))
 }
