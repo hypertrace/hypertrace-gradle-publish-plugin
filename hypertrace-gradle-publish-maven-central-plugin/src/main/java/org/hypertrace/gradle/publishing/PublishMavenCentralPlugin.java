@@ -4,6 +4,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
@@ -99,46 +100,51 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
   private void addJavaLibraryPublicationWhenApplied(PublicationContainer publications) {
     project.getPluginManager()
       .withPlugin("java-library", appliedPlugin -> {
-        publications.create("javaLibrary", MavenPublication.class, publication -> {
-          // from
+        MavenPublication publication;
+
+        try {
+          // use existing publication from org.hypertrace.publish-plugin plugin
+          publication = (MavenPublication) publications.getByName("javaLibrary");
+        } catch (UnknownDomainObjectException e) {
+          // create new publication
+          publication = publications.create("javaLibrary", MavenPublication.class);
           publication.from(project.getComponents().getByName("java"));
+        }
 
-          // pom
-          publication.pom(mavenPom -> {
-            // url
-            mavenPom.getUrl().set(this.extension.url);
+        // configure pom
+        publication.pom(mavenPom -> {
+          // url
+          mavenPom.getUrl().set(this.extension.url);
 
-            // scm
-            String repoName = this.extension.repoName.get();
-            String scmConnection = String.format("scm:git:git://github.com/hypertrace/%s.git", repoName);
-            String scmDeveloperConnection = String.format("scm:git:ssh://github.com:hypertrace/%s.git", repoName);
-            String scmUrl = String.format("https://github.com/hypertrace/%s/tree/main", repoName);
-            mavenPom.scm(mavenPomScm -> {
-              mavenPomScm.getConnection().set(scmConnection);
-              mavenPomScm.getDeveloperConnection().set(scmDeveloperConnection);
-              mavenPomScm.getUrl().set(scmUrl);
-            });
-
-
-            // developers
-            mavenPom.developers(mavenPomDeveloperSpec -> {
-              mavenPomDeveloperSpec.developer(mavenPomDeveloper -> {
-                mavenPomDeveloper.getId().set(this.extension.developerId);
-                mavenPomDeveloper.getName().set(this.extension.developerName);
-                mavenPomDeveloper.getEmail().set(this.extension.developerEmail);
-                mavenPomDeveloper.getOrganization().set(this.extension.developerOrganization);
-                mavenPomDeveloper.getOrganizationUrl().set(this.extension.developerOrganizationUrl);
-              });
-            });
-
-            // licenses
-            mavenPom.licenses(mavenPomLicenseSpec -> {
-              mavenPomLicenseSpec.license(mavenPomLicense -> {
-                mavenPomLicense.getName().set(this.extension.license.get().bintrayString);
-              });
-            });
-
+          // scm
+          String repoName = this.extension.repoName.get();
+          String scmConnection = String.format("scm:git:git://github.com/hypertrace/%s.git", repoName);
+          String scmDeveloperConnection = String.format("scm:git:ssh://github.com:hypertrace/%s.git", repoName);
+          String scmUrl = String.format("https://github.com/hypertrace/%s/tree/main", repoName);
+          mavenPom.scm(mavenPomScm -> {
+            mavenPomScm.getConnection().set(scmConnection);
+            mavenPomScm.getDeveloperConnection().set(scmDeveloperConnection);
+            mavenPomScm.getUrl().set(scmUrl);
           });
+
+          // developers
+          mavenPom.developers(mavenPomDeveloperSpec -> {
+            mavenPomDeveloperSpec.developer(mavenPomDeveloper -> {
+              mavenPomDeveloper.getId().set(this.extension.developerId);
+              mavenPomDeveloper.getName().set(this.extension.developerName);
+              mavenPomDeveloper.getEmail().set(this.extension.developerEmail);
+              mavenPomDeveloper.getOrganization().set(this.extension.developerOrganization);
+              mavenPomDeveloper.getOrganizationUrl().set(this.extension.developerOrganizationUrl);
+            });
+          });
+
+          // licenses
+          mavenPom.licenses(mavenPomLicenseSpec -> {
+            mavenPomLicenseSpec.license(mavenPomLicense -> {
+              mavenPomLicense.getName().set(this.extension.license.get().bintrayString);
+            });
+          });
+
         });
       });
   }
