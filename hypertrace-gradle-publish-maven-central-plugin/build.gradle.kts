@@ -23,4 +23,16 @@ gradlePlugin {
 
 dependencies {
   api(project(":hypertrace-gradle-publish-plugin"))
+  testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.1")
+  testImplementation(gradleTestKit())
+}
+
+tasks {
+  test {
+    useJUnitPlatform()
+    reports {
+      junitXml.isOutputPerTestCase = true
+    }
+  }
 }
