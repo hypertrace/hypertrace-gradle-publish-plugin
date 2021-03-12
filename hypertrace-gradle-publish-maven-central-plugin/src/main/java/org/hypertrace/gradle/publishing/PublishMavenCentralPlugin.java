@@ -79,17 +79,17 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
       url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/";
     }
 
-    getPublishingExtension().repositories(artifactRepositories ->
-      artifactRepositories.maven(mavenArtifactRepository -> {
-        mavenArtifactRepository.setUrl(url);
-        if (user.isPresent() && password.isPresent()) {
+    if (user.isPresent() && password.isPresent()) {
+      getPublishingExtension().repositories(artifactRepositories ->
+        artifactRepositories.maven(mavenArtifactRepository -> {
+          mavenArtifactRepository.setUrl(url);
           mavenArtifactRepository.credentials(passwordCredentials -> {
             passwordCredentials.setUsername(user.get());
             passwordCredentials.setPassword(password.get());
           });
-        }
-      })
-    );
+        })
+      );
+    }
   }
 
   private void addPublications() {
@@ -200,7 +200,7 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
   }
 
   private void validateGradlePropertiesBeforePublishTask() {
-    project.getTasks().withType(PublishToMavenRepository.class).stream().forEach(task -> {
+    project.getTasks().named("publish").configure(task -> {
       task.doFirst(unused -> {
         validateGradleProperty(PROPERTY_OSSRH_USERNAME);
         validateGradleProperty(PROPERTY_OSSRH_PASSWORD);
