@@ -117,6 +117,9 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
 
         // configure pom
         publication.pom(mavenPom -> {
+          // name
+          mavenPom.getName().set(project.getGroup().toString() + ":" + project.getName());
+
           // url
           mavenPom.getUrl().set(this.extension.url);
 
