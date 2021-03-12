@@ -120,6 +120,9 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
           // url
           mavenPom.getUrl().set(this.extension.url);
 
+          // description
+          mavenPom.getDescription().set(project.getDescription());
+
           // scm
           String repoName = this.extension.repoName.get();
           String scmConnection = String.format("scm:git:git://github.com/hypertrace/%s.git", repoName);
