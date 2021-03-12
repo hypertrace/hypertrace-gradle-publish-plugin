@@ -6,6 +6,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -118,7 +119,9 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
         // configure pom
         publication.pom(mavenPom -> {
           // name
-          mavenPom.getName().set(project.getGroup().toString() + ":" + project.getName());
+          mavenPom.getName().set(project.provider(() -> {
+            return String.format("%s:%s", project.getGroup(), project.getName());
+          }));
 
           // url
           mavenPom.getUrl().set(this.extension.url);
