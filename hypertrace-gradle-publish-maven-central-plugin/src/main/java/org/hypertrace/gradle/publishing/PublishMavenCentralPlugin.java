@@ -16,6 +16,7 @@ import org.gradle.plugins.signing.SigningExtension;
 import org.gradle.plugins.signing.SigningPlugin;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 public class PublishMavenCentralPlugin implements Plugin<Project> {
   private static final String EXTENSION_NAME = "hypertracePublishMavenCentral";
@@ -68,8 +69,8 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
 
   private void addPublishRepository() {
     String url;
-    String user = getPropertyOrThrow(project, PROPERTY_OSSRH_USERNAME);
-    String password = getPropertyOrThrow(project, PROPERTY_OSSRH_PASSWORD);
+    Optional<String> user = getProperty(PROPERTY_OSSRH_USERNAME);
+    Optional<String> password = getProperty(PROPERTY_OSSRH_PASSWORD);
 
     if (project.getVersion().toString().endsWith("SNAPSHOT")) {
       url = "https://s01.oss.sonatype.org/content/repositories/snapshots/";
@@ -77,21 +78,24 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
       url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/";
     }
 
-    getPublishingExtension().repositories(artifactRepositories ->
-      artifactRepositories.maven(mavenArtifactRepository -> {
-        mavenArtifactRepository.setUrl(url);
-        mavenArtifactRepository.credentials(passwordCredentials -> {
-          passwordCredentials.setUsername(user);
-          passwordCredentials.setPassword(password);
-        });
-      })
-    );
+    if (user.isPresent() && password.isPresent()) {
+      getPublishingExtension().repositories(artifactRepositories ->
+        artifactRepositories.maven(mavenArtifactRepository -> {
+          mavenArtifactRepository.setUrl(url);
+          mavenArtifactRepository.credentials(passwordCredentials -> {
+            passwordCredentials.setUsername(user.get());
+            passwordCredentials.setPassword(password.get());
+          });
+        })
+      );
+    }
   }
 
   private void addPublications() {
     project.afterEvaluate(unused -> {
       validateExtensionAtConfigurationTime();
       getPublishingExtension().publications(this::addJavaLibraryPublicationWhenApplied);
+      validateGradlePropertiesBeforePublishTask();
       // sign after publication is added
       addSigning();
     });
@@ -115,6 +119,9 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
         publication.pom(mavenPom -> {
           // url
           mavenPom.getUrl().set(this.extension.url);
+
+          // description
+          mavenPom.getDescription().set(project.getDescription());
 
           // scm
           String repoName = this.extension.repoName.get();
@@ -179,13 +186,8 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
       .getByType(SigningExtension.class);
   }
 
-  private String getPropertyOrThrow(Project project, String propertyName) {
-    if (!project.hasProperty(propertyName)) {
-      throw new GradleException("Missing expected gradle property: " + propertyName + ". It should be added " +
-        "in your ~/.gradle/gradle.properties file, or in a an environment variable of the form " +
-        "ORG_GRADLE_PROJECT_" + propertyName);
-    }
-    return (String) project.property(propertyName);
+  private Optional<String> getProperty(String propertyName) {
+    return Optional.ofNullable(project.findProperty(propertyName)).map(String::valueOf);
   }
 
   private void validateExtensionAtConfigurationTime() {
@@ -196,6 +198,23 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
     if (!this.extension.repoName.isPresent()) {
       throw new GradleException(
         "Repository Name must be specified in the build DSL to use the Hypertrace maven central publish plugin");
+    }
+  }
+
+  private void validateGradlePropertiesBeforePublishTask() {
+    project.getTasks().named("publish").configure(task -> {
+      task.doFirst(unused -> {
+        validateGradleProperty(PROPERTY_OSSRH_USERNAME);
+        validateGradleProperty(PROPERTY_OSSRH_PASSWORD);
+      });
+    });
+  }
+
+  private void validateGradleProperty(String propertyName) {
+    if (!project.hasProperty(propertyName)) {
+      throw new GradleException("Missing expected gradle property: " + propertyName + ". It should be added " +
+        "in your ~/.gradle/gradle.properties file, or in a an environment variable of the form " +
+        "ORG_GRADLE_PROJECT_" + propertyName);
     }
   }
 
