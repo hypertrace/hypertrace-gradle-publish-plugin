@@ -15,6 +15,8 @@ For signing artifacts, following properties must be provided as gradle propertie
 - signingKey
 - signingPassword
 
+The plugin also uses [gradle-nexus-staging-plugin](https://github.com/Codearte/gradle-nexus-staging-plugin) plugin for closing and releasing staged repositories.
+
 Each property described below can be configured in the DSL. The default values are shown for each property,
 all of which, with the exception of license, can be omitted if left unchanged.
 ```kotlin
@@ -22,6 +24,10 @@ hypertracePublishMavenCentral {
   license // REQUIRED to be a value defined in org.hypertrace.gradle.publishing.License
   repoName // REQUIRED. Name of the repository.
   url // Optional. The URL for the publication represented by the POM.
+  packageGroup // Optional. The package group as registered in Nexus staging profile.
+  stagingProfileId // Optional. The staging profile used to release given project.
+  numberOfRetries // Optional. The number of retries when waiting for a repository state transition to finish.
+  delayBetweenRetriesInMillis // Optional. The delay between retries.
 }
 ```
 
@@ -50,4 +56,9 @@ subprojects {
 plugins {
   id("org.hypertrace.publish-maven-central-plugin") // No version required, set by parent
 }
+```
+
+#### Releasing repositories
+```bash
+./gradlew closeAndReleaseRepository
 ```
