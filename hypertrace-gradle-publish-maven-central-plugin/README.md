@@ -24,10 +24,6 @@ hypertracePublishMavenCentral {
   license // REQUIRED to be a value defined in org.hypertrace.gradle.publishing.License
   repoName // REQUIRED. Name of the repository.
   url // Optional. The URL for the publication represented by the POM.
-  packageGroup // Optional. The package group as registered in Nexus staging profile.
-  stagingProfileId // Optional. The staging profile used to release given project.
-  numberOfRetries // Optional. The number of retries when waiting for a repository state transition to finish.
-  delayBetweenRetriesInMillis // Optional. The delay between retries.
 }
 ```
 
