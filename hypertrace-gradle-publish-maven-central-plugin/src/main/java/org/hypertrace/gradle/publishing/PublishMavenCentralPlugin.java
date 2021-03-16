@@ -1,12 +1,14 @@
 package org.hypertrace.gradle.publishing;
 
+import io.codearte.gradle.nexus.BaseStagingTask;
+import io.codearte.gradle.nexus.NexusStagingExtension;
+import io.codearte.gradle.nexus.NexusStagingPlugin;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -42,11 +44,31 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
     this.applyWithSourcesJar();
     this.addPublishRepository();
     this.addPublications();
+    this.applyNexusStaging();
   }
 
   private void applySigning() {
     project.getPluginManager()
       .apply(SigningPlugin.class);
+  }
+
+  private void applyNexusStaging() {
+    project.getRootProject().getPluginManager()
+      .apply(NexusStagingPlugin.class);
+  }
+
+  private void configureNexusStagingPlugin() {
+    Optional<String> user = getProperty(PROPERTY_OSSRH_USERNAME);
+    Optional<String> password = getProperty(PROPERTY_OSSRH_PASSWORD);
+
+    getNexusStagingExtension().setServerUrl("https://s01.oss.sonatype.org/service/local/");
+    if (user.isPresent() && password.isPresent()) {
+      getNexusStagingExtension().setUsername(user.get());
+      getNexusStagingExtension().setPassword(password.get());
+    }
+
+    // packageGroup
+    getNexusStagingExtension().setPackageGroup(this.extension.packageGroup.get());
   }
 
   private void applyMavenPublish() {
@@ -99,6 +121,9 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
       validateGradlePropertiesBeforePublishTask();
       // sign after publication is added
       addSigning();
+      // configure staging plugin
+      configureNexusStagingPlugin();
+      validateGradlePropertiesBeforeStagingTasks();
     });
   }
 
@@ -192,6 +217,11 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
       .getByType(SigningExtension.class);
   }
 
+  private NexusStagingExtension getNexusStagingExtension() {
+    return project.getRootProject().getExtensions()
+      .getByType(NexusStagingExtension.class);
+  }
+
   private Optional<String> getProperty(String propertyName) {
     return Optional.ofNullable(project.findProperty(propertyName)).map(String::valueOf);
   }
@@ -209,6 +239,15 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
 
   private void validateGradlePropertiesBeforePublishTask() {
     project.getTasks().named("publish").configure(task -> {
+      task.doFirst(unused -> {
+        validateGradleProperty(PROPERTY_OSSRH_USERNAME);
+        validateGradleProperty(PROPERTY_OSSRH_PASSWORD);
+      });
+    });
+  }
+
+  private void validateGradlePropertiesBeforeStagingTasks() {
+    project.getRootProject().getTasks().withType(BaseStagingTask.class).stream().forEach(task -> {
       task.doFirst(unused -> {
         validateGradleProperty(PROPERTY_OSSRH_USERNAME);
         validateGradleProperty(PROPERTY_OSSRH_PASSWORD);

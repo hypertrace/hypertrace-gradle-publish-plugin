@@ -14,6 +14,7 @@ public abstract class HypertracePublishMavenCentralExtension implements Extensio
   private static final String DEFAULT_DEVELOPER_EMAIL = "community@hypertrace.org";
   private static final String DEFAULT_DEVELOPER_ORG = "Hypertrace";
   private static final String DEFAULT_DEVELOPER_ORG_URL = "https://www.hypertrace.org";
+  private static final String DEFAULT_PACKAGE_GROUP = "org.hypertrace";
 
   public final Property<String> url;
   public final Property<String> repoName;
@@ -23,6 +24,7 @@ public abstract class HypertracePublishMavenCentralExtension implements Extensio
   public final Property<String> developerOrganization;
   public final Property<String> developerOrganizationUrl;
   public final Property<License> license;
+  public final Property<String> packageGroup;
 
   @Inject
   public HypertracePublishMavenCentralExtension(ObjectFactory objectFactory) {
@@ -34,5 +36,6 @@ public abstract class HypertracePublishMavenCentralExtension implements Extensio
     this.developerOrganization = objectFactory.property(String.class).convention(DEFAULT_DEVELOPER_ORG);
     this.developerOrganizationUrl = objectFactory.property(String.class).convention(DEFAULT_DEVELOPER_ORG_URL);
     this.license = objectFactory.property(License.class);
+    this.packageGroup = objectFactory.property(String.class).convention(DEFAULT_PACKAGE_GROUP);
   }
 }
