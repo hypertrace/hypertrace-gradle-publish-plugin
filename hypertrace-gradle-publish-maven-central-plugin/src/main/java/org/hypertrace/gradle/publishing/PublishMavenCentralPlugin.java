@@ -69,21 +69,6 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
 
     // packageGroup
     getNexusStagingExtension().setPackageGroup(this.extension.packageGroup.get());
-
-    // stagingProfileId
-    if (this.extension.stagingProfileId.isPresent()) {
-      getNexusStagingExtension().setStagingProfileId(this.extension.stagingProfileId.get());
-    }
-
-    // numberOfRetries
-    if (this.extension.numberOfRetries.isPresent()) {
-      getNexusStagingExtension().setNumberOfRetries(this.extension.numberOfRetries.get());
-    }
-
-    // delayBetweenRetriesInMillis
-    if (this.extension.delayBetweenRetriesInMillis.isPresent()) {
-      getNexusStagingExtension().setDelayBetweenRetriesInMillis(this.extension.delayBetweenRetriesInMillis.get());
-    }
   }
 
   private void applyMavenPublish() {
