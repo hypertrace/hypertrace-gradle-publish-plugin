@@ -7,6 +7,7 @@ import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin;
+import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
@@ -58,12 +59,10 @@ public class PublishPlugin implements Plugin<Project> {
   }
 
   private void addKnownPublications() {
-    project.afterEvaluate(unused -> {
-      validateExtensionAtConfigurationTime();
-      validateGradlePropertiesBeforePublishTask();
-      getPublishingExtension().publications(this::addJavaLibraryPublicationWhenApplied);
-      getPublishingExtension().publications(this::addDistributionPublicationWhenApplied);
-    });
+    validateGradlePropertiesBeforePublishTask();
+    validateExtensionBeforeGeneratePom();
+    getPublishingExtension().publications(this::addJavaLibraryPublicationWhenApplied);
+    getPublishingExtension().publications(this::addDistributionPublicationWhenApplied);
   }
 
   private void addJavaLibraryPublicationWhenApplied(PublicationContainer publications) {
@@ -95,7 +94,7 @@ public class PublishPlugin implements Plugin<Project> {
       // Add license
       mavenPom.licenses(mavenPomLicenseSpec -> {
         mavenPomLicenseSpec.license(mavenPomLicense -> {
-          mavenPomLicense.getName().set(this.extension.license.get().toString());
+          mavenPomLicense.getName().set(this.extension.license.map(License::toString));
         });
       });
     });
@@ -125,18 +124,22 @@ public class PublishPlugin implements Plugin<Project> {
     });
   }
 
+  private void validateExtensionBeforeGeneratePom() {
+    project.getTasks().withType(GenerateMavenPom.class).configureEach(task -> {
+      task.doFirst(unused -> {
+        if (!this.extension.license.isPresent()) {
+          throw new GradleException(
+            "A license type must be specified in the build DSL to use the Hypertrace publish plugin");
+        }
+      });
+    });
+  }
+
   private void validateGradleProperty(String propertyName) {
     if (!project.hasProperty(propertyName)) {
       throw new GradleException("Missing expected gradle property: " + propertyName + ". It should be added " +
         "in your ~/.gradle/gradle.properties file, or in a an environment variable of the form " +
         "ORG_GRADLE_PROJECT_" + propertyName);
-    }
-  }
-
-  private void validateExtensionAtConfigurationTime() {
-    if (!this.extension.license.isPresent()) {
-      throw new GradleException(
-        "A license type must be specified in the build DSL to use the Hypertrace publish plugin");
     }
   }
 }
