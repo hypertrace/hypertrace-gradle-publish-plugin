@@ -18,7 +18,7 @@ all of which, with the exception of license, can be omitted if left unchanged.
 ```kotlin
  hypertracePublish {
       license // REQUIRED to be a value defined in org.hypertrace.gradle.publishing.License
-      url  // Optional.
+      pomUrl  // Optional. defaults to https://www.hypertrace.org/
   }
 ```
 

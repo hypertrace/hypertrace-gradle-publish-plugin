@@ -6,11 +6,11 @@ import org.gradle.api.provider.Property;
 
 public class HypertracePublishExtension {
   public final Property<License> license;
-  public final Property<String> url;
+  public final Property<String> pomUrl;
 
   @Inject
   public HypertracePublishExtension(ObjectFactory objectFactory) {
     this.license = objectFactory.property(License.class);
-    this.url = objectFactory.property(String.class);
+    this.pomUrl = objectFactory.property(String.class).convention("https://www.hypertrace.org/");
   }
 }
