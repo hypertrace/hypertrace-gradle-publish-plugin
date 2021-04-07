@@ -179,7 +179,7 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
           // licenses
           mavenPom.licenses(mavenPomLicenseSpec -> {
             mavenPomLicenseSpec.license(mavenPomLicense -> {
-              mavenPomLicense.getName().set(this.extension.license.get().bintrayString);
+              mavenPomLicense.getName().set(this.extension.license.get().toString());
             });
           });
 
