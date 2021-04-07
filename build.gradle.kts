@@ -3,7 +3,7 @@ import org.hypertrace.gradle.publishing.License
 
 plugins {
   id("org.hypertrace.ci-utils-plugin") version "0.2.0"
-  id("org.hypertrace.publish-plugin") version "0.4.4-SNAPSHOT" apply false
+  id("org.hypertrace.publish-plugin") version "1.0.0" apply false
   id("org.hypertrace.repository-plugin") version "0.2.3"
 }
 
