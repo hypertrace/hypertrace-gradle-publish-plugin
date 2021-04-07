@@ -1,6 +1,6 @@
 # Hypertrace Publish Plugin
 ###### org.hypertrace.publish-plugin
-[![CircleCI](https://circleci.com/gh/hypertrace/hypertrace-gradle-publish-plugin.svg?style=svg)](https://circleci.com/gh/hypertrace/hypertrace-gradle-publish-plugin)
+[![Github](https://github.com/hypertrace/hypertrace-gradle-publish-plugin/actions/workflows/publish.yml/badge.svg)](https://github.com/hypertrace/hypertrace-gradle-publish-plugin/actions/workflows/publish.yml)
 
 ### Purpose
 This plugin configures the target project to publish its java artifacts to the Hypertrace artifactory
