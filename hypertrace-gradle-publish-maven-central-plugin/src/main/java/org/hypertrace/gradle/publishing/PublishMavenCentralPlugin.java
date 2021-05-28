@@ -104,6 +104,7 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
     if (user.isPresent() && password.isPresent()) {
       getPublishingExtension().repositories(artifactRepositories ->
         artifactRepositories.maven(mavenArtifactRepository -> {
+          mavenArtifactRepository.setName("mavenCentral");
           mavenArtifactRepository.setUrl(url);
           mavenArtifactRepository.credentials(passwordCredentials -> {
             passwordCredentials.setUsername(user.get());
