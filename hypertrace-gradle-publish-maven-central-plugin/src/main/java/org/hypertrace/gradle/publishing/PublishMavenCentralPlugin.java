@@ -9,6 +9,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -104,6 +105,7 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
     if (user.isPresent() && password.isPresent()) {
       getPublishingExtension().repositories(artifactRepositories ->
         artifactRepositories.maven(mavenArtifactRepository -> {
+          mavenArtifactRepository.setName("mavenCentral");
           mavenArtifactRepository.setUrl(url);
           mavenArtifactRepository.credentials(passwordCredentials -> {
             passwordCredentials.setUsername(user.get());
@@ -155,14 +157,21 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
           mavenPom.getDescription().set(project.getDescription());
 
           // scm
-          String repoName = this.extension.repoName.get();
-          String scmConnection = String.format("scm:git:git://github.com/hypertrace/%s.git", repoName);
-          String scmDeveloperConnection = String.format("scm:git:ssh://github.com:hypertrace/%s.git", repoName);
-          String scmUrl = String.format("https://github.com/hypertrace/%s/tree/main", repoName);
+          Provider<String> qualifiedRepoProvider =
+              this.extension.scmOrganization.flatMap(
+                  repoName ->
+                      this.extension.repoName.map(
+                          orgName -> String.format("%s/%s", orgName, repoName)));
+          Provider<String> scmConnectionProvider =
+              qualifiedRepoProvider.map(qualifiedRepo -> String.format("scm:git:git://github.com/%s.git", qualifiedRepo));
+          Provider<String> scmDeveloperConnectionProvider =
+              qualifiedRepoProvider.map(qualifiedRepo -> String.format("scm:git:ssh://github.com:%s.git", qualifiedRepo));
+          Provider<String> scmUrlProvider =
+              qualifiedRepoProvider.map(qualifiedRepo ->  String.format("https://github.com/%s/tree/main", qualifiedRepo));
           mavenPom.scm(mavenPomScm -> {
-            mavenPomScm.getConnection().set(scmConnection);
-            mavenPomScm.getDeveloperConnection().set(scmDeveloperConnection);
-            mavenPomScm.getUrl().set(scmUrl);
+            mavenPomScm.getConnection().set(scmConnectionProvider);
+            mavenPomScm.getDeveloperConnection().set(scmDeveloperConnectionProvider);
+            mavenPomScm.getUrl().set(scmUrlProvider);
           });
 
           // developers
