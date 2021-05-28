@@ -1,6 +1,5 @@
 package org.hypertrace.gradle.publishing;
 
-import org.hypertrace.gradle.publishing.License;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
@@ -15,6 +14,7 @@ public abstract class HypertracePublishMavenCentralExtension implements Extensio
   private static final String DEFAULT_DEVELOPER_ORG = "Hypertrace";
   private static final String DEFAULT_DEVELOPER_ORG_URL = "https://www.hypertrace.org";
   private static final String DEFAULT_PACKAGE_GROUP = "org.hypertrace";
+  private static final String DEFAULT_SCM_ORGANIZATION = "hypertrace";
 
   public final Property<String> url;
   public final Property<String> repoName;
@@ -25,6 +25,7 @@ public abstract class HypertracePublishMavenCentralExtension implements Extensio
   public final Property<String> developerOrganizationUrl;
   public final Property<License> license;
   public final Property<String> packageGroup;
+  public final Property<String> scmOrganization;
 
   @Inject
   public HypertracePublishMavenCentralExtension(ObjectFactory objectFactory) {
@@ -37,5 +38,6 @@ public abstract class HypertracePublishMavenCentralExtension implements Extensio
     this.developerOrganizationUrl = objectFactory.property(String.class).convention(DEFAULT_DEVELOPER_ORG_URL);
     this.license = objectFactory.property(License.class);
     this.packageGroup = objectFactory.property(String.class).convention(DEFAULT_PACKAGE_GROUP);
+    this.scmOrganization = objectFactory.property(String.class).convention(DEFAULT_SCM_ORGANIZATION);
   }
 }
