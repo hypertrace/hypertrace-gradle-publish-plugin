@@ -159,9 +159,9 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
           // scm
           Provider<String> qualifiedRepoProvider =
               this.extension.scmOrganization.flatMap(
-                  repoName ->
+                  orgName ->
                       this.extension.repoName.map(
-                          orgName -> String.format("%s/%s", orgName, repoName)));
+                          repoName -> String.format("%s/%s", orgName, repoName)));
           Provider<String> scmConnectionProvider =
               qualifiedRepoProvider.map(qualifiedRepo -> String.format("scm:git:git://github.com/%s.git", qualifiedRepo));
           Provider<String> scmDeveloperConnectionProvider =
