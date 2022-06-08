@@ -20,7 +20,7 @@ public class PublishMavenCentralPluginTest {
     project.getPluginManager().apply("org.hypertrace.publish-maven-central-plugin");
     project.getExtensions().getByType(HypertracePublishMavenCentralExtension.class).license.set(License.APACHE_2_0);
     project.getExtensions().getByType(HypertracePublishMavenCentralExtension.class).repoName.set("test");
-    project.getTasksByName("tasks", false);
+    project.getAllTasks(true); // FIXME: why is this failing - something with kotlin dsl
   }
 
   @Test

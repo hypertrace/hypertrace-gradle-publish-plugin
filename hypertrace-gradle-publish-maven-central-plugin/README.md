@@ -15,7 +15,7 @@ For signing artifacts, following properties must be provided as gradle propertie
 - signingKey
 - signingPassword
 
-The plugin also uses [gradle-nexus-staging-plugin](https://github.com/Codearte/gradle-nexus-staging-plugin) plugin for closing and releasing staged repositories.
+The plugin also uses [Nexus Publish Plugin](https://github.com/gradle-nexus/publish-plugin) plugin for closing and releasing staged repositories.
 
 Each property described below can be configured in the DSL. The default values are shown for each property,
 all of which, with the exception of license, can be omitted if left unchanged.
@@ -56,5 +56,6 @@ plugins {
 
 #### Releasing repositories
 ```bash
+FIXME: This has changed, as has publish https://github.com/gradle-nexus/publish-plugin/wiki/Migration-from-gradle_nexus_staging-plugin---nexus_publish-plugin-duo#tasks---simple-case
 ./gradlew closeAndReleaseRepository
 ```
