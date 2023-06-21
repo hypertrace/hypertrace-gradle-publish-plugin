@@ -63,6 +63,7 @@ public class PublishPlugin implements Plugin<Project> {
     validateExtensionBeforeGeneratePom();
     getPublishingExtension().publications(this::addJavaLibraryPublicationWhenApplied);
     getPublishingExtension().publications(this::addDistributionPublicationWhenApplied);
+    getPublishingExtension().publications(this::addJavaPlatformPublicationWhenApplied);
   }
 
   private void addJavaLibraryPublicationWhenApplied(PublicationContainer publications) {
@@ -76,6 +77,22 @@ public class PublishPlugin implements Plugin<Project> {
           updatePomMetadata(publication);
         });
       });
+  }
+
+  private void addJavaPlatformPublicationWhenApplied(PublicationContainer publications) {
+    project
+        .getPluginManager()
+        .withPlugin(
+            "java-platform",
+            appliedPlugin -> {
+              publications.create(
+                  "javaPlatform",
+                  MavenPublication.class,
+                  publication -> {
+                    publication.from(project.getComponents().getByName("javaPlatform"));
+                    updatePomMetadata(publication);
+                  });
+            });
   }
 
   private void addDistributionPublicationWhenApplied(PublicationContainer publications) {
