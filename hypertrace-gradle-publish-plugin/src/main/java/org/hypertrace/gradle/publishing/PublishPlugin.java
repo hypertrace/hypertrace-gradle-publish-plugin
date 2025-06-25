@@ -16,9 +16,13 @@ public class PublishPlugin implements Plugin<Project> {
 
   private static final String REPOSITORY_KEY = "gradle";
   private static final String EXTENSION_NAME = "hypertracePublish";
-  private static final String PROPERTTY_ARTIFACTORY_USER = "artifactory_user";
-  private static final String PROPERTTY_ARTIFACTORY_PASSWORD = "artifactory_password";
-  private static final String PROPERTTY_ARTIFACTORY_CONTEXTURL = "artifactory_contextUrl";
+  private static final String PROPERTY_ARTIFACTORY_USER = "artifactory_user";
+  private static final String PROPERTY_ARTIFACTORY_PASSWORD = "artifactory_password";
+  private static final String PROPERTY_ARTIFACTORY_CONTEXT_URL = "artifactory_contextUrl";
+
+  private static final String MAVEN_USER = "maven_user";
+  private static final String MAVEN_PASSWORD = "maven_password";
+  private static final String MAVEN_REPO_URL = "maven_repo_url";
 
   private Project project;
   private HypertracePublishExtension extension;
@@ -28,7 +32,8 @@ public class PublishPlugin implements Plugin<Project> {
     project = target;
     extension = project.getExtensions().create(EXTENSION_NAME, HypertracePublishExtension.class);
     this.applyMavenPublish();
-    this.addPublishRepository();
+    this.maybeAddArtifactoryPublishRepository();
+    this.maybeAddMavenPublishRepository();
     this.addKnownPublications();
   }
 
@@ -37,25 +42,36 @@ public class PublishPlugin implements Plugin<Project> {
       .apply(MavenPublishPlugin.class);
   }
 
-  private void addPublishRepository() {
-    Optional<String> user = getProperty(PROPERTTY_ARTIFACTORY_USER);
-    Optional<String> password = getProperty(PROPERTTY_ARTIFACTORY_PASSWORD);
-    Optional<String> contextUrl = getProperty(PROPERTTY_ARTIFACTORY_CONTEXTURL);
+  private void maybeAddArtifactoryPublishRepository() {
+    Optional<String> user = getProperty(PROPERTY_ARTIFACTORY_USER);
+    Optional<String> password = getProperty(PROPERTY_ARTIFACTORY_PASSWORD);
+    Optional<String> contextUrl = getProperty(PROPERTY_ARTIFACTORY_CONTEXT_URL);
+    if (contextUrl.isPresent() && user.isPresent() && password.isPresent()) {
+      String repoUrl = contextUrl.get() + "/" + REPOSITORY_KEY;
+      addPublishRepository(repoUrl, user.get(), password.get());
+    }
+  }
 
-    if (contextUrl.isPresent()) {
-      String url = contextUrl.get() + "/" + REPOSITORY_KEY;
-      getPublishingExtension().repositories(artifactRepositories -> {
-        artifactRepositories.maven(mavenArtifactRepository -> {
-          mavenArtifactRepository.setUrl(url);
-          if (user.isPresent() && password.isPresent()) {
-            mavenArtifactRepository.credentials(passwordCredentials -> {
-              passwordCredentials.setUsername(user.get());
-              passwordCredentials.setPassword(password.get());
-            });
-          }
+  private void maybeAddMavenPublishRepository() {
+    Optional<String> user = getProperty(MAVEN_USER);
+    Optional<String> password = getProperty(MAVEN_PASSWORD);
+    Optional<String> repoUrl = getProperty(MAVEN_REPO_URL);
+
+    if (repoUrl.isPresent() && user.isPresent() && password.isPresent()) {
+      addPublishRepository(repoUrl.get(), user.get(), password.get());
+    }
+  }
+
+  private void addPublishRepository(String repoUrl, String user, String password) {
+    getPublishingExtension().repositories(artifactRepositories -> {
+      artifactRepositories.maven(mavenArtifactRepository -> {
+        mavenArtifactRepository.setUrl(repoUrl);
+        mavenArtifactRepository.credentials(passwordCredentials -> {
+          passwordCredentials.setUsername(user);
+          passwordCredentials.setPassword(password);
         });
       });
-    }
+    });
   }
 
   private void addKnownPublications() {
@@ -134,9 +150,17 @@ public class PublishPlugin implements Plugin<Project> {
   private void validateGradlePropertiesBeforePublishTask() {
     project.getTasks().named("publish").configure(task -> {
       task.doFirst(unused -> {
-        validateGradleProperty(PROPERTTY_ARTIFACTORY_CONTEXTURL);
-        validateGradleProperty(PROPERTTY_ARTIFACTORY_USER);
-        validateGradleProperty(PROPERTTY_ARTIFACTORY_PASSWORD);
+        if (project.hasProperty(PROPERTY_ARTIFACTORY_CONTEXT_URL)) {
+          validateGradleProperty(PROPERTY_ARTIFACTORY_USER);
+          validateGradleProperty(PROPERTY_ARTIFACTORY_PASSWORD);
+        }
+        if (project.hasProperty(MAVEN_REPO_URL)) {
+          validateGradleProperty(MAVEN_USER);
+          validateGradleProperty(MAVEN_PASSWORD);
+        } else if (!project.hasProperty(PROPERTY_ARTIFACTORY_CONTEXT_URL)) {
+          // If neither, fail the repro url validation
+          validateGradleProperty(MAVEN_REPO_URL);
+        }
       });
     });
   }
