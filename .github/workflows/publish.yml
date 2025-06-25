@@ -21,6 +21,6 @@ jobs:
         with: 
           args: publish
         env:
-          ORG_GRADLE_PROJECT_artifactory_contextUrl: ${{ secrets.ARTIFACTORY_CONTEXT_URL }}
-          ORG_GRADLE_PROJECT_artifactory_user: ${{ secrets.ARTIFACTORY_PUBLISH_USER }}
-          ORG_GRADLE_PROJECT_artifactory_password: ${{ secrets.ARTIFACTORY_PUBLISH_TOKEN }}
+          ORG_GRADLE_PROJECT_maven_repo_url: ${{ secrets.HAR_REPO_URL }}
+          ORG_GRADLE_PROJECT_maven_user: ${{ secrets.HAR_PUBLISH_USER }}
+          ORG_GRADLE_PROJECT_maven_password: ${{ secrets.HAR_PUBLISH_TOKEN }}
