@@ -109,9 +109,9 @@ public class PublishMavenCentralPlugin implements Plugin<Project> {
     Optional<String> password = getProperty(PROPERTY_OSSRH_PASSWORD);
 
     if (project.getVersion().toString().endsWith("SNAPSHOT")) {
-      url = "https://s01.oss.sonatype.org/content/repositories/snapshots/";
+      url = "https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots/";
     } else {
-      url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/";
+      url = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/";
     }
 
     if (user.isPresent() && password.isPresent()) {
